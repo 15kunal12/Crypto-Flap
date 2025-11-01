@@ -17,7 +17,6 @@ const gameOverSound = new Audio("sounds/gameover.mp3");
 bgMusic.loop = true;
 bgMusic.volume = 0.3;
 
-// Start music when the player interacts (required by browsers)
 function startAudio() {
   bgMusic.play().catch(() => {});
   window.removeEventListener("mousedown", startAudio);
@@ -78,7 +77,7 @@ let scoreScale = 1;
 // --- GAME STATE ---
 let gameOver = false;
 let canRestart = false;
-let gameStarted = false; // added for start screen
+let gameStarted = false;
 
 // --- BACKGROUND ---
 function drawBackground() {
@@ -99,7 +98,8 @@ function drawBackground() {
   ctx.stroke();
 
   const lastY = chartPoints[chartPoints.length - 1];
-  const nextY = lastY + Math.sin(Date.now() / 400) * 2 + (Math.random() - 0.5) * 3;
+  const nextY =
+    lastY + Math.sin(Date.now() / 400) * 2 + (Math.random() - 0.5) * 3;
   chartPoints.push(nextY);
   chartPoints.shift();
 }
@@ -171,7 +171,8 @@ function checkCollision() {
     if (
       coin.x + coin.radius > obs.x &&
       coin.x - coin.radius < obs.x + obstacleWidth &&
-      (coin.y - coin.radius < obs.topHeight || coin.y + coin.radius > obs.bottomY)
+      (coin.y - coin.radius < obs.topHeight ||
+        coin.y + coin.radius > obs.bottomY)
     )
       return true;
   }
@@ -191,23 +192,38 @@ function restartGame() {
   obstacleSpawner = setInterval(createObstacle, spawnInterval);
 }
 
-// --- START PAGE ---
+// --- START PAGE (responsive) ---
 function drawStartScreen() {
   drawBackground();
-  drawCoin();
 
+  const baseSize = Math.min(canvas.width, canvas.height);
+
+  // Title
   ctx.fillStyle = "gold";
   ctx.shadowColor = "rgba(255,215,0,0.7)";
   ctx.shadowBlur = 25;
-  ctx.font = "bold 60px Orbitron";
+  ctx.font = `bold ${baseSize * 0.08}px Orbitron`;
   ctx.textAlign = "center";
-  ctx.fillText("CRYPTO FLAP", canvas.width / 2, canvas.height / 2 - 50);
+  ctx.fillText("CRYPTO FLAP", canvas.width / 2, canvas.height * 0.35);
   ctx.shadowBlur = 0;
 
+  // Coin bounce
+  const coinSize = baseSize * 0.05;
+  const coinY = canvas.height * 0.5 + Math.sin(Date.now() / 300) * 10;
+  ctx.fillStyle = "gold";
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, coinY, coinSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = `${coinSize * 1.2}px Orbitron`;
+  ctx.textBaseline = "middle";
+  ctx.fillText("₿", canvas.width / 2, coinY);
+
+  // Tap to start
   const opacity = 0.5 + 0.5 * Math.sin(Date.now() / 500);
   ctx.fillStyle = `rgba(255,255,255,${opacity})`;
-  ctx.font = "22px Orbitron";
-  ctx.fillText("Tap or Click to Start", canvas.width / 2, canvas.height / 2 + 60);
+  ctx.font = `${baseSize * 0.035}px Orbitron`;
+  ctx.fillText("Tap to Start", canvas.width / 2, canvas.height * 0.75);
 }
 
 // --- GAME LOOP ---
@@ -286,7 +302,11 @@ function gameLoop() {
       const opacity = 0.5 + 0.5 * Math.sin(Date.now() / 400);
       ctx.fillStyle = `rgba(255,255,255,${opacity})`;
       ctx.font = "22px Orbitron";
-      ctx.fillText("Tap or Click to Restart", canvas.width / 2, canvas.height / 2 + 140);
+      ctx.fillText(
+        "Tap or Click to Restart",
+        canvas.width / 2,
+        canvas.height / 2 + 140
+      );
     }
   }
 
@@ -297,7 +317,7 @@ function gameLoop() {
 function flap() {
   if (!gameStarted) {
     gameStarted = true;
-    bgMusic.play();
+    bgMusic.play().catch(() => {});
     obstacleSpawner = setInterval(createObstacle, spawnInterval);
     return;
   }
